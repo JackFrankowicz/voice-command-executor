@@ -1,8 +1,12 @@
 from flask import Flask, request, jsonify
 import openai
 import subprocess
+from flask_cors import CORS  # Import Flask-CORS
 
 app = Flask(__name__)
+
+# Enable CORS for all routes
+CORS(app, origins=['https://jackfrankowicz.github.io'])
 
 # Set your OpenAI API key
 openai.api_key = 'SvQh3AYsCx4r2NqT3B1bkFJrjkD37tAaLquw95SWowm'
@@ -35,4 +39,3 @@ def execute_command():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-

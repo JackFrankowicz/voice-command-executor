@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 import openai
 import subprocess
@@ -9,8 +9,11 @@ CORS(app, resources={r"/execute": {"origins": "https://jackfrankowicz.github.io"
 # Set your OpenAI API key
 openai.api_key = 'SvQh3AYscx4r2NqT3B1bkF3F-jkD37tEaALquw95Swomp'
 
-@app.route('/execute', methods=['POST'])
+@app.route('/execute', methods=['POST', 'OPTIONS'])
 def execute_command():
+    if request.method == 'OPTIONS':
+        return build_cors_preflight_response()
+
     data = request.get_json()
     prompt = data.get('prompt')
 
@@ -34,6 +37,13 @@ def execute_command():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+def build_cors_preflight_response():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "https://jackfrankowicz.github.io")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+    response.headers.add("Access-Control-Allow-Methods", "POST")
+    return response
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

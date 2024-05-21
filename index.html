@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Command Executor</title>
+</head>
+<body>
+  <h1>Voice Command Executor</h1>
+  <button id="start-btn">Start Listening</button>
+  <p id="status">Click the button and speak your command.</p>
+  <p id="result"></p>
+
+  <script>
+    const startBtn = document.getElementById('start-btn');
+    const status = document.getElementById('status');
+    const result = document.getElementById('result');
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      status.textContent = 'Listening...';
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      status.textContent = `You said: ${transcript}`;
+      // Send transcript to the server
+      fetch('http://localhost:5000/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: transcript }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+        result.textContent = `Command: ${data.command}\nOutput: ${data.stdout}\nError: ${data.stderr}`;
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        result.textContent = `Error: ${error.message}`;
+      });
+    };
+
+    recognition.onerror = (event) => {
+      status.textContent = `Error occurred in recognition: ${event.error}`;
+    };
+
+    recognition.onend = () => {
+      status.textContent = 'Click the button and speak your command.';
+    };
+
+    startBtn.addEventListener('click', () => {
+      recognition.start();
+    });
+  </script>
+</body>
+</html>
